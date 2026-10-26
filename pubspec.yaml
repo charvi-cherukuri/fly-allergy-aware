@@ -1,0 +1,52 @@
+name: trace_allergy
+description: "Trace — an offline-first food allergy scanner that treats 'may contain' as a real answer."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # Scanning
+  mobile_scanner: ^7.0.0
+  google_mlkit_text_recognition: ^0.15.0
+
+  # On-device translation. Models are downloaded on demand, ~30 MB each, and
+  # everything runs offline afterwards — which is the only version of this
+  # feature worth having on a plane.
+  google_mlkit_translation: ^0.13.1
+
+  # Network
+  http: ^1.2.0
+
+  # The app lock: the device's own Face ID / Touch ID / passcode prompt. The
+  # app stores no secret of its own — no account, no server, nothing to forget.
+  local_auth: ^2.3.0
+
+  # Persistence
+  sqflite: ^2.4.2
+  path: ^1.9.1
+  shared_preferences: ^2.5.5
+
+  # State
+  provider: ^6.1.5+1
+
+  # Platform
+  flutter_local_notifications: ^18.0.1
+  timezone: ^0.10.1
+  url_launcher: ^6.3.2
+  share_plus: ^10.1.4
+  image_picker: ^1.2.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  sqflite_common_ffi: ^2.4.4
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/logo.png
