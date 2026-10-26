@@ -1,0 +1,72 @@
+# Uncomment this line to define a global platform for your project
+platform :ios, '15.5'
+
+# CocoaPods analytics sends network stats synchronously affecting flutter build latency.
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+def flutter_root
+  generated_xcode_build_settings_path = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
+  unless File.exist?(generated_xcode_build_settings_path)
+    raise "#{generated_xcode_build_settings_path} must exist. If you're running pod install manually, make sure flutter pub get is executed first"
+  end
+
+  File.foreach(generated_xcode_build_settings_path) do |line|
+    matches = line.match(/FLUTTER_ROOT\=(.*)/)
+    return matches[1].strip if matches
+  end
+  raise "FLUTTER_ROOT not found in #{generated_xcode_build_settings_path}. Try deleting Generated.xcconfig, then run flutter pub get"
+end
+
+require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+
+flutter_ios_podfile_setup
+
+target 'Runner' do
+  use_frameworks!
+
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+  target 'RunnerTests' do
+    inherit! :search_paths
+  end
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+    target.build_configurations.each do |config|
+      # ML Kit text recognition sets the floor at 15.5 and ships no armv7 slice.
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.5'
+      # ML Kit ships no arm64 slice for the iOS simulator, so on Apple Silicon the
+      # simulator build must be x86_64 (under Rosetta). Device builds are unaffected.
+      config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64 i386 armv7'
+    end
+  end
+
+  # This project lives under ~/Desktop, which iCloud Drive syncs. iCloud stamps
+  # files with com.apple.FinderInfo, and `codesign` refuses to sign anything
+  # carrying it ("resource fork, Finder information, or similar detritus not
+  # allowed"). CocoaPods rsyncs the pod frameworks into the .app and then signs
+  # them, so the attribute rides along and every `flutter build ios` fails at
+  # the embed phase. Xcode's own builds escape it only because DerivedData sits
+  # in ~/Library, which is not synced.
+  #
+  # Strip extended attributes immediately before each signature. Applied here
+  # rather than to the file directly so it survives `pod install`.
+  script_path = File.join(installer.sandbox.root.to_s, 'Target Support Files', 'Pods-Runner', 'Pods-Runner-frameworks.sh')
+  guard = 'trace_strip_xattrs'
+  if File.exist?(script_path)
+    contents = File.read(script_path)
+    unless contents.include?(guard)
+      needle = '  if [ -n "${EXPANDED_CODE_SIGN_IDENTITY:-}"'
+      patch = "  # #{guard}: see the comment in the Podfile\n  xattr -cr \"$1\" 2>/dev/null || true\n" + needle
+      contents = contents.sub(needle, patch)
+      File.open(script_path, 'w') { |f| f.write(contents) }
+    end
+  end
+end

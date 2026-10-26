@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- The app's own code collects nothing: no backend, no account, no
+	     analytics. Profiles, scans, flights, requests and reaction logs live
+	     only in a local SQLite file on the device.
+
+	     This array covers the Runner target only. Google's ML Kit (label text
+	     recognition and translation) DOES send Google diagnostic data — device
+	     and app info, a per-installation ID, performance metrics, error codes,
+	     configured languages — and declares it in the privacy manifests that
+	     ship inside its own pods, which Xcode merges into the app's privacy
+	     report. It cannot be switched off. See docs/privacy-policy.html. -->
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+
+	<!-- No tracking, and no data is linked to identity or used to build a
+	     profile across apps. -->
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+
+	<!-- The Runner target itself calls none of Apple's required-reason APIs.
+	     The plugins that do (shared_preferences uses UserDefaults, sqflite
+	     touches file timestamps) each ship their own manifest inside their
+	     pod, which is where Apple expects the declaration to live. -->
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array/>
+</dict>
+</plist>
